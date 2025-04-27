@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Trained</title>
+</head>
+<body>
+<div th:replace="~{fragments :: layout(content=~{::content})}">
+    <div th:fragment="content">
+        <div class="bg-white shadow-xl rounded-xl p-8 w-full max-w-4xl mx-auto border border-gray-100">
+            <div class="text-center mb-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-green-600 mb-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Model Trained Successfully</h1>
+                <p class="text-gray-500">Your machine learning model is ready for predictions</p>
+            </div>
+
+            <!-- Data Preview -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Data Preview</h2>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 overflow-x-auto">
+                    <pre class="text-sm text-gray-700" th:text="${csvRequest.csvContent}"></pre>
+                </div>
+            </div>
+
+            <!-- Training Result -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Training Result</h2>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <pre class="text-sm text-gray-700 whitespace-pre-wrap" th:text="${csvRequest.response}"></pre>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form method="post" enctype="multipart/form-data" action="/predict" class="w-full">
+                    <input type="hidden" name="modelId" th:value="${modelId}">
+                    <div class="relative">
+                        <input type="file" name="file" accept=".csv" id="prediction-file-input" class="hidden">
+                        <label for="prediction-file-input" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-medium shadow-md flex items-center justify-center cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd" />
+                            </svg>
+                            Upload Data for Prediction
+                        </label>
+                    </div>
+                </form>
+
+                <a href="/reset" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-6 rounded-lg transition-all duration-300 font-medium shadow-sm flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1z" clip-rule="evenodd"/>
+                    </svg>
+                    Train New Model
+                </a>
+            </div>
+
+            <!-- Help Section -->
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Next Steps</h3>
+                <ul class="text-sm text-gray-600 space-y-2">
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Upload a new CSV file with the same structure to get predictions
+                    </li>
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Your model ID has been saved for this session
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-submit form when a file is selected
+    document.getElementById('prediction-file-input').addEventListener('change', function() {
+        if (this.files.length > 0) {
+            this.form.submit();
+        }
+    });
+</script>
+</body>
+</html>

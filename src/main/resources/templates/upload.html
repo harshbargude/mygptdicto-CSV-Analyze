@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload CSV</title>
+</head>
+
+<body>
+    <div th:replace="~{fragments :: layout(content=~{::content})}">
+        <div th:fragment="content">
+            <div class="bg-white shadow-xl rounded-xl p-8 w-full max-w-xl mx-auto border border-gray-100">
+                <div class="text-center mb-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-indigo-600 mb-4"
+                        viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Upload Your CSV File</h1>
+                    <p class="text-gray-500">Upload a CSV file and ask questions about your data</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" action="/upload" class="space-y-6">
+                    <!-- File Input -->
+                    <div class="relative">
+                        <label class="block text-gray-700 font-semibold mb-2">Select CSV File</label>
+                        <div
+                            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-500 transition-colors cursor-pointer bg-gray-50">
+                            <input type="file" name="file" accept=".csv"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-gray-400 mb-3"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="text-sm text-gray-500">Drag and drop your CSV file here, or click to browse</p>
+                            <p class="text-xs text-gray-400 mt-1">Only CSV files are supported</p>
+                        </div>
+                    </div>
+
+                    <!-- Question Input -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">What would you like to know?</label>
+                        <textarea
+                            class="w-full border border-gray-300 p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-h-[120px] transition-all duration-200"
+                            name="question"
+                            placeholder="Example: What are the average sales by region? Or: Create a summary of the main trends in this data."></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button
+                        class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 px-6 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 font-medium shadow-md flex items-center justify-center"
+                        type="submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Upload and Analyze
+                    </button>
+                </form>
+
+
+                <!--            form for ml Predictions-->
+                <form method="post" enctype="multipart/form-data" action="/predict" class="mt-4">
+                    <div class="relative hidden">
+                        <input type="file" name="file" accept=".csv" id="ml-file-input">
+                    </div>
+                    <button
+                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-medium shadow-md flex items-center justify-center"
+                        type="button" onclick="document.getElementById('ml-file-input').click()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Get ML Predictions
+                    </button>
+                </form>
+
+                <!--            train model -->
+                <!-- Add this after your existing form or replace the existing form -->
+
+
+                <!-- Messages -->
+                <div th:if="${error}"
+                    class="mt-6 bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 text-center animate-fade-in"
+                    th:text="${error}"></div>
+                <div th:if="${message}"
+                    class="mt-6 bg-green-50 text-green-700 p-4 rounded-lg border border-green-200 text-center animate-fade-in"
+                    th:text="${message}"></div>
+
+                <!-- Help Section -->
+                <div class="mt-8 pt-6 border-t border-gray-100">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Tips for best results
+                    </h3>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0"
+                                viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Make sure your CSV file has headers in the first row
+                        </li>
+                        <li class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0"
+                                viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Ask specific questions about your data for better insights
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

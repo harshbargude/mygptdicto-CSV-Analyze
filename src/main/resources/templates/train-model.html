@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train ML Model</title>
+</head>
+<body>
+<div th:replace="~{fragments :: layout(content=~{::content})}">
+    <div th:fragment="content">
+        <div class="bg-white shadow-xl rounded-xl p-8 w-full max-w-xl mx-auto border border-gray-100">
+            <div class="text-center mb-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-purple-600 mb-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                </svg>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Train Machine Learning Model</h1>
+                <p class="text-gray-500">Upload your dataset and create a predictive model</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" action="/train-model" class="space-y-6">
+                <!-- File Input -->
+                <div class="relative">
+                    <label class="block text-gray-700 font-semibold mb-2">Select CSV File for Training</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors cursor-pointer bg-gray-50">
+                        <input type="file" name="file" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="text-sm text-gray-500">Drag and drop your CSV file here, or click to browse</p>
+                        <p class="text-xs text-gray-400 mt-1">Only CSV files are supported</p>
+                    </div>
+                </div>
+
+                <!-- Model Type Selection -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Model Type</label>
+                    <select name="modelType" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                        <option value="regression">Regression</option>
+                        <option value="classification">Classification</option>
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">Choose regression for numeric predictions, classification for categories</p>
+                </div>
+
+                <!-- Target Column Input -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Target Column</label>
+                    <input
+                            type="text"
+                            name="targetColumn"
+                            class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                            placeholder="Leave blank to auto-select the last numeric column">
+                    <p class="text-xs text-gray-400 mt-1">Specify which column the model should predict</p>
+                </div>
+
+                <!-- Advanced Options (Collapsible) -->
+                <div>
+                    <button type="button" id="advancedOptionsToggle" class="flex items-center text-purple-600 hover:text-purple-800 transition-colors text-sm font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Advanced Options
+                    </button>
+
+                    <div id="advancedOptions" class="hidden mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="space-y-4">
+                            <!-- Test Size -->
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-1">Test Size</label>
+                                <input
+                                        type="range"
+                                        name="testSize"
+                                        min="0.1"
+                                        max="0.5"
+                                        step="0.05"
+                                        value="0.2"
+                                        class="w-full"
+                                        oninput="this.nextElementSibling.value = this.value">
+                                <output class="text-sm text-gray-600 block mt-1">0.2</output>
+                                <p class="text-xs text-gray-400 mt-1">Portion of data used for testing (0.1-0.5)</p>
+                            </div>
+
+                            <!-- Feature Selection -->
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-1">Feature Selection</label>
+                                <input
+                                        type="text"
+                                        name="features"
+                                        class="w-full border border-gray-300 p-2 rounded-lg text-sm"
+                                        placeholder="Comma-separated column names (leave blank to use all)">
+                                <p class="text-xs text-gray-400 mt-1">Specify which columns to use as features</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-medium shadow-md flex items-center justify-center" type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Train ML Model
+                </button>
+            </form>
+
+            <!-- Messages -->
+            <div th:if="${error}" class="mt-6 bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 text-center animate-fade-in" th:text="${error}"></div>
+            <div th:if="${message}" class="mt-6 bg-green-50 text-green-700 p-4 rounded-lg border border-green-200 text-center animate-fade-in" th:text="${message}"></div>
+
+            <!-- Help Section -->
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Training Tips</h3>
+                <ul class="text-sm text-gray-600 space-y-2">
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Make sure your CSV file has clean data with no missing values
+                    </li>
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Numeric columns are automatically normalized for better training
+                    </li>
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Categorical columns are automatically encoded for model compatibility
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Advanced Options toggle -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const advancedOptionsToggle = document.getElementById('advancedOptionsToggle');
+        const advancedOptions = document.getElementById('advancedOptions');
+
+        advancedOptionsToggle.addEventListener('click', function() {
+            advancedOptions.classList.toggle('hidden');
+
+            // Change the toggle icon
+            const icon = advancedOptionsToggle.querySelector('svg');
+            if (advancedOptions.classList.contains('hidden')) {
+                icon.innerHTML = '<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />';
+            } else {
+                icon.innerHTML = '<path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />';
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean & Preprocess CSV Data</title>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet" /> -->
+    <link rel="stylesheet" th:href="@{/css/output.css}">
+</head>
+
+<body>
+    <div th:replace="~{fragments :: layout(content=~{::content})}">
+        <div th:fragment="content">
+            <div class=" p-6">
+                <div class="max-w-6xl mx-auto">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-8">Clean & Preprocess Data</h1>
+
+                    <!-- CSV Upload Section -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Upload CSV File</h2>
+
+                        <form th:if="${session.csvData == null}" method="post" enctype="multipart/form-data"
+                            action="/upload-csv" class="space-y-4">
+                            <div class="flex items-center justify-center w-full">
+                                <label
+                                    class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                            </path>
+                                        </svg>
+                                        <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to
+                                                upload</span>
+                                            or drag and drop</p>
+                                        <p class="text-xs text-gray-500">CSV files only</p>
+                                    </div>
+                                    <input id="file-upload" name="file" type="file" accept=".csv" class="hidden" />
+                                </label>
+                            </div>
+                            <div>
+                                <button type="submit"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300">
+                                    Upload & Analyze
+                                </button>
+                                <br><br>
+                            </div>
+                        </form>
+
+                        <div th:if="${datasetInfo != null}" class="flex justify-between items-center">
+                            <div>
+                                <span class="font-medium text-green-600">File uploaded: </span>
+                                <span class="ml-3 text-sm text-gray-500"
+                                    th:text="${'(' + datasetInfo.rows + ' rows × ' + datasetInfo.columns + ' columns)'}"></span>
+                            </div>
+                            <div>
+                                <a href="/reset"
+                                    class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition duration-300">
+                                    Remove file
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Information Section -->
+
+
+                    <!-- Data Information Section -->
+                    <div th:if="${datasetInfo != null}"
+                        class="bg-white rounded-lg shadow-md p-6 mb-8 transition-all hover:shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Data Information</h2>
+
+                        <!-- Toggle Button -->
+                        <button id="show-columns-btn"
+                            class="w-full flex justify-center items-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-all duration-300 font-medium">
+                            <span>Show Dataset Information</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <button data-modal-target="default-modal" data-modal-toggle="default-modal"
+                            class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                            type="button">
+                            Toggle modal
+                        </button>
+                        <!-- Main modal -->
+                        <div id="default-modal" tabindex="-1" aria-hidden="true"
+                            class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                            <div class="relative p-4 w-full max-w-4xl max-h-full">
+                                <!-- Modal content -->
+                                <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                                    <!-- Modal header -->
+                                    <div
+                                        class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+                                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                                            Terms of Service
+                                        </h3>
+                                        <button type="button"
+                                            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                                            data-modal-hide="default-modal">
+                                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 14 14">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                            </svg>
+                                            <span class="sr-only">Close modal</span>
+                                        </button>
+                                    </div>
+                                    <!-- Modal body -->
+                                     <div>
+                                        <!-- Numeric Statistics -->
+                                    <div class="card">
+                                        <div class="card-header">Numeric Statistics</div>
+                                        <div class="card-body">
+                                            <div th:if="${numericStatistics != null}">
+                                                <ul class="nav nav-tabs" id="numericTabs" role="tablist">
+                                                    <li class="nav-item" th:each="entry, stat : ${numericStatistics}"
+                                                        role="presentation">
+                                                        <button class="nav-link"
+                                                            th:class="${stat.first} ? 'nav-link active' : 'nav-link'"
+                                                            th:id="${entry.key} + '-tab'" data-bs-toggle="tab"
+                                                            th:data-bs-target="'#' + ${entry.key}" type="button"
+                                                            role="tab" th:text="${entry.key}"></button>
+                                                    </li>
+                                                </ul>
+                                                <div class="tab-content mt-3" id="numericTabContent">
+                                                    <div th:each="entry, stat : ${numericStatistics}"
+                                                        class="tab-pane fade"
+                                                        th:class="${stat.first} ? 'tab-pane fade show active' : 'tab-pane fade'"
+                                                        th:id="${entry.key}" role="tabpanel"
+                                                        th:aria-labelledby="${entry.key} + '-tab'">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm table-striped">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Statistic</th>
+                                                                        <th>Value</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr th:each="stat : ${entry.value}">
+                                                                        <td th:text="${stat.key}"></td>
+                                                                        <td th:text="${stat.value}"></td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Categorical Statistics -->
+                                    <div class="card">
+                                        <div class="card-header">Categorical Statistics</div>
+                                        <div class="card-body">
+                                            <div th:if="${categoricalStatistics != null}">
+                                                <ul class="nav nav-tabs" id="categoricalTabs" role="tablist">
+                                                    <li class="nav-item"
+                                                        th:each="entry, stat : ${categoricalStatistics}"
+                                                        role="presentation">
+                                                        <button class="nav-link"
+                                                            th:class="${stat.first} ? 'nav-link active' : 'nav-link'"
+                                                            th:id="${entry.key} + '-cat-tab'" data-bs-toggle="tab"
+                                                            th:data-bs-target="'#' + ${entry.key} + '-cat'"
+                                                            type="button" role="tab" th:text="${entry.key}"></button>
+                                                    </li>
+                                                </ul>
+                                                <div class="tab-content mt-3" id="categoricalTabContent">
+                                                    <div th:each="entry, stat : ${categoricalStatistics}"
+                                                        class="tab-pane fade"
+                                                        th:class="${stat.first} ? 'tab-pane fade show active' : 'tab-pane fade'"
+                                                        th:id="${entry.key} + '-cat'" role="tabpanel"
+                                                        th:aria-labelledby="${entry.key} + '-cat-tab'">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <p><strong>Unique Values:</strong> <span
+                                                                        th:text="${entry.value.unique_values}"></span>
+                                                                </p>
+                                                                <p><strong>Empty Strings:</strong> <span
+                                                                        th:text="${entry.value.empty_strings}"></span>
+                                                                </p>
+                                                                <p><strong>Mode:</strong> <span
+                                                                        th:text="${entry.value.mode}"></span></p>
+                                                                <p><strong>Mode Frequency:</strong> <span
+                                                                        th:text="${entry.value.mode_frequency}"></span>
+                                                                </p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <h5>Top Values:</h5>
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-sm table-striped">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Value</th>
+                                                                                <th>Count</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <tr
+                                                                                th:each="val : ${entry.value.top_values}">
+                                                                                <td th:text="${val.key}"></td>
+                                                                                <td th:text="${val.value}"></td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Duplicate Info -->
+                                    <div class="card">
+                                        <div class="card-header">Duplicate Information</div>
+                                        <div class="card-body">
+                                            <div th:if="${duplicateInfo != null}">
+                                                <div class="row">
+                                                    <div class="col-md-6 stat-item">
+                                                        <strong>Duplicate Rows:</strong> <span
+                                                            th:text="${duplicateInfo.duplicate_rows}"></span>
+                                                    </div>
+                                                    <div class="col-md-6 stat-item">
+                                                        <strong>Duplicate Rows Percent:</strong> <span
+                                                            th:text="${duplicateInfo.duplicate_rows_percent}"></span>%
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Data Quality Suggestions -->
+                                    <div class="card">
+                                        <div class="card-header">Data Quality Suggestions</div>
+                                        <div class="card-body">
+                                            <div
+                                                th:if="${dataQualitySuggestions != null && !dataQualitySuggestions.isEmpty()}">
+                                                <div class="suggestion-item"
+                                                    th:each="suggestion : ${dataQualitySuggestions}"
+                                                    th:text="${suggestion}"></div>
+                                            </div>
+                                            <div
+                                                th:if="${dataQualitySuggestions == null || dataQualitySuggestions.isEmpty()}">
+                                                <p class="text-success">No data quality issues detected. Your dataset
+                                                    looks good!</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                     </div>
+                                    
+
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
+
+
+                        <!-- Dataset Information Panel -->
+                        <div id="columns-info" class="mt-6 p-5 bg-gray-50 rounded-lg border border-gray-100 hidden">
+                            <div class="space-y-6">
+                                <h3 class="text-lg font-semibold text-gray-700 pb-2 border-b border-gray-200">Dataset
+                                    Information</h3>
+
+                                <!-- Stats Grid -->
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                                        <p class="text-sm text-gray-500 mb-1">Rows</p>
+                                        <p class="text-xl font-bold text-gray-800" th:text="${datasetInfo.rows}">0</p>
+                                    </div>
+
+                                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                                        <p class="text-sm text-gray-500 mb-1">Columns</p>
+                                        <p class="text-xl font-bold text-gray-800" th:text="${datasetInfo.columns}">0
+                                        </p>
+                                    </div>
+
+                                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                                        <p class="text-sm text-gray-500 mb-1">Memory Usage (MB)</p>
+                                        <p class="text-xl font-bold text-gray-800"
+                                            th:text="${datasetInfo.memory_usage}">0</p>
+                                    </div>
+                                </div>
+
+                                <!-- Column Names -->
+                                <div>
+                                    <h4 class="text-md font-medium text-gray-700 mb-3">Column Names</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span th:each="col : ${datasetInfo.column_names}"
+                                            class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                                            <span th:text="${col}"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Data Cleaning Section -->
+                    <div th:if="${session.dataInfo != null}" class="bg-white rounded-lg shadow-md p-6 mb-8">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-6">Data Cleaning Options</h2>
+
+                        <form id="cleaning-form" method="post" action="/clean-data" class="space-y-8">
+                            <!-- Missing Values Handling -->
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <h3 class="text-lg font-medium text-gray-800 mb-3">Handle Missing Values</h3>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="fill_method"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Fill
+                                            Method</label>
+                                        <select id="fill_method" name="fill_method"
+                                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                            <option value="">Leave as is</option>
+                                            <option value="mean">Mean (numeric columns)</option>
+                                            <option value="median">Median (numeric columns)</option>
+                                            <option value="mode">Mode (most frequent value)</option>
+                                            <option value="value">Custom value</option>
+                                            <option value="ffill">Forward fill</option>
+                                            <option value="bfill">Backward fill</option>
+                                            <option value="interpolate">Interpolate (numeric columns)</option>
+                                            <option value="knn">KNN Imputation (numeric columns)</option>
+                                            <option value="zero">Zero (numeric columns)</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="fill_value_container" class="hidden">
+                                        <label for="fill_value"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Fill
+                                            Value</label>
+                                        <input type="text" id="fill_value" name="fill_value" value="0"
+                                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="drop_null_rows" name="drop_null_rows"
+                                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <label for="drop_null_rows" class="ml-2 block text-sm text-gray-700">
+                                            Drop rows with too many missing values
+                                        </label>
+                                    </div>
+
+                                    <div id="null_threshold_container" class="hidden mt-3 ml-6">
+                                        <label for="null_threshold"
+                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                            Threshold (proportion of columns that must be null)
+                                        </label>
+                                        <div class="flex items-center">
+                                            <input type="range" id="null_threshold" name="null_threshold" min="0.1"
+                                                max="1.0" step="0.1" value="0.5"
+                                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                            <span id="null_threshold_value"
+                                                class="ml-2 text-sm font-medium text-gray-700">0.5</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Outlier Handling -->
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <h3 class="text-lg font-medium text-gray-800 mb-3">Handle Outliers</h3>
+
+                                <div class="flex items-center mb-4">
+                                    <input type="checkbox" id="remove_outliers" name="remove_outliers"
+                                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="remove_outliers" class="ml-2 block text-sm text-gray-700">
+                                        Remove outliers from numeric columns
+                                    </label>
+                                </div>
+
+                                <div id="outlier_options" class="hidden space-y-4">
+                                    <div>
+                                        <label for="outlier_method"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Detection
+                                            Method</label>
+                                        <select id="outlier_method" name="outlier_method"
+                                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                            <option value="iqr">IQR (Interquartile Range)</option>
+                                            <option value="zscore">Z-Score</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label for="outlier_threshold"
+                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                            Threshold (<span id="threshold_description">values outside Q1-1.5*IQR and
+                                                Q3+1.5*IQR</span>)
+                                        </label>
+                                        <div class="flex items-center">
+                                            <input type="range" id="outlier_threshold" name="outlier_threshold"
+                                                min="0.5" max="3.0" step="0.1" value="1.5"
+                                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                            <span id="outlier_threshold_value"
+                                                class="ml-2 text-sm font-medium text-gray-700">1.5</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Text Cleaning -->
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <h3 class="text-lg font-medium text-gray-800 mb-3">Text Cleaning</h3>
+
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="text_cleaning" name="text_cleaning"
+                                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="text_cleaning" class="ml-2 block text-sm text-gray-700">
+                                        Clean text columns (remove special characters, extra spaces, and convert to
+                                        lowercase)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Column Operations -->
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <h3 class="text-lg font-medium text-gray-800 mb-3">Column Operations</h3>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="drop_columns" class="block text-sm font-medium text-gray-700 mb-1">
+                                            Drop Columns (comma-separated)
+                                        </label>
+                                        <input type="text" id="drop_columns" name="drop_columns"
+                                            placeholder="e.g. column1, column2"
+                                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                    </div>
+
+                                    <div>
+                                        <label for="rename_columns"
+                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                            Rename Columns (oldname:newname, comma-separated)
+                                        </label>
+                                        <input type="text" id="rename_columns" name="rename_columns"
+                                            placeholder="e.g. old_name1:new_name1, old_name2:new_name2"
+                                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                    </div>
+
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="drop_duplicates" name="drop_duplicates"
+                                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <label for="drop_duplicates" class="ml-2 block text-sm text-gray-700">
+                                            Remove duplicate rows
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Encoding Options -->
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <h3 class="text-lg font-medium text-gray-800 mb-3">Data Encoding</h3>
+
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="encoding_categorical" name="encoding_categorical"
+                                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label for="encoding_categorical" class="ml-2 block text-sm text-gray-700">
+                                        One-hot encode categorical variables (for columns with few unique values)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="mt-8 flex justify-between">
+                                <button type="button" id="preview-cleaning-btn"
+                                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-300">
+                                    Preview Changes
+                                </button>
+                                <button type="submit"
+                                    class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-300">
+                                    Apply Cleaning
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Preview Modal -->
+                    <div id="preview-modal"
+                        class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                        <div class="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-semibold text-gray-800">Preview Changes</h3>
+                                <button id="close-preview" class="text-gray-500 hover:text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div id="preview-content" class="space-y-4">
+                                <div class="text-sm text-gray-500 mb-4">
+                                    This preview shows the first 5 rows of data before and after cleaning.
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h4 class="font-medium text-gray-700 mb-2">Before Cleaning:</h4>
+                                        <div class="overflow-x-auto">
+                                            <table class="min-w-full bg-white border border-gray-200">
+                                                <thead>
+                                                    <tr>
+                                                        <th th:each="col : ${session.columns}"
+                                                            class="px-3 py-2 bg-gray-100 text-left text-gray-600 text-xs"
+                                                            th:text="${col}"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="before-cleaning-body">
+                                                    <!-- Populated by JavaScript -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="font-medium text-gray-700 mb-2">After Cleaning:</h4>
+                                        <div class="overflow-x-auto">
+                                            <table class="min-w-full bg-white border border-gray-200">
+                                                <thead id="after-cleaning-header">
+                                                    <!-- Populated by JavaScript -->
+                                                </thead>
+                                                <tbody id="after-cleaning-body">
+                                                    <!-- Populated by JavaScript -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="cleaning-summary" class="mt-4 p-4 bg-blue-50 text-blue-800 rounded-md">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Section (after cleaning) -->
+                    <div th:if="${session.cleanedData != null}" class="bg-white rounded-lg shadow-md p-6 mb-8">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4">Cleaning Results</h2>
+
+                        <div class="space-y-4">
+                            <div class="p-4 bg-green-50 text-green-800 rounded-md">
+                                <h3 class="font-medium mb-2">Summary of Changes:</h3>
+                                <ul class="list-disc ml-5 space-y-1">
+                                    <li th:if="${session.cleaningStats.rowsBefore != session.cleaningStats.rowsAfter}">
+                                        Rows: <span th:text="${session.cleaningStats.rowsBefore}"></span> →
+                                        <span th:text="${session.cleaningStats.rowsAfter}"></span>
+                                        (<span
+                                            th:text="${session.cleaningStats.rowsBefore - session.cleaningStats.rowsAfter}"></span>
+                                        removed)
+                                    </li>
+                                    <li
+                                        th:if="${session.cleaningStats.columnsBefore != session.cleaningStats.columnsAfter}">
+                                        Columns: <span th:text="${session.cleaningStats.columnsBefore}"></span> →
+                                        <span th:text="${session.cleaningStats.columnsAfter}"></span>
+                                        <span th:if="${session.cleaningStats.columnsAdded > 0}"
+                                            th:text="${'(' + session.cleaningStats.columnsAdded + ' added, ' + 
+                                               (session.cleaningStats.columnsBefore - session.cleaningStats.columnsAfter + session.cleaningStats.columnsAdded) + ' removed)'}">
+                                        </span>
+                                        <span th:unless="${session.cleaningStats.columnsAdded > 0}"
+                                            th:text="${'(' + (session.cleaningStats.columnsBefore - session.cleaningStats.columnsAfter) + ' removed)'}">
+                                        </span>
+                                    </li>
+                                    <li
+                                        th:if="${session.cleaningStats.nullValuesBefore != session.cleaningStats.nullValuesAfter}">
+                                        Missing values: <span
+                                            th:text="${session.cleaningStats.nullValuesBefore}"></span> →
+                                        <span th:text="${session.cleaningStats.nullValuesAfter}"></span>
+                                        (<span
+                                            th:text="${session.cleaningStats.nullValuesBefore - session.cleaningStats.nullValuesAfter}"></span>
+                                        filled)
+                                    </li>
+                                    <li th:if="${session.cleaningStats.duplicateRows > 0}">
+                                        <span th:text="${session.cleaningStats.duplicateRows}"></span> duplicate rows
+                                        removed
+                                    </li>
+                                    <li th:if="${session.cleaningStats.outliersRemoved > 0}">
+                                        <span th:text="${session.cleaningStats.outliersRemoved}"></span> outliers
+                                        removed
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h3 class="font-medium text-gray-700 mb-2">Cleaned Data Preview:</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full bg-white">
+                                        <thead>
+                                            <tr>
+                                                <th class="px-4 py-2 bg-gray-100 text-left text-gray-600">#</th>
+                                                <th th:each="col : ${session.cleanedColumns}"
+                                                    class="px-4 py-2 bg-gray-100 text-left text-gray-600"
+                                                    th:text="${col}"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="row, rowStat : ${session.cleanedPreviewData}"
+                                                th:if="${rowStat.index < 5}">
+                                                <td class="border px-4 py-2 font-medium" th:text="${rowStat.index}">
+                                                </td>
+                                                <td th:each="col : ${session.cleanedColumns}"
+                                                    class="border px-4 py-2 text-sm" th:text="${row[col]}"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="flex space-x-4 mt-6">
+                                <a href="/download-cleaned"
+                                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-300">
+                                    Download Cleaned CSV
+                                </a>
+                                <a href="/train?use=cleaned"
+                                    class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-300">
+                                    Proceed to ML Training
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JavaScript for interactive elements -->
+                    <!-- <script>
+                        // Outlier method change handler
+                        document.getElementById('outlier_method').addEventListener('change', function () {
+                            const thresholdDescription = document.getElementById('threshold_description');
+                            if (this.value === 'iqr') {
+                                thresholdDescription.textContent = 'values outside Q1-1.5*IQR and Q3+1.5*IQR';
+                            } else if (this.value === 'zscore') {
+                                thresholdDescription.textContent = 'values with z-score greater than threshold';
+                            }
+                        });
+
+                        // Outlier threshold slider
+                        document.getElementById('outlier_threshold').addEventListener('input', function () {
+                            document.getElementById('outlier_threshold_value').textContent = this.value;
+                        });
+
+                        // Preview cleaning button handler
+                        document.getElementById('preview-cleaning-btn').addEventListener('click', function () {
+                            // Show the modal
+                            document.getElementById('preview-modal').classList.remove('hidden');
+
+                            // Get form data
+                            const formData = new FormData(document.getElementById('cleaning-form'));
+
+                            // Send AJAX request to get preview
+                            fetch('/preview-cleaning', {
+                                method: 'POST',
+                                body: formData
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    // Populate before cleaning table
+                                    const beforeBody = document.getElementById('before-cleaning-body');
+                                    beforeBody.innerHTML = '';
+
+                                    data.beforeCleaning.forEach(row => {
+                                        const tr = document.createElement('tr');
+                                        Object.values(row).forEach(value => {
+                                            const td = document.createElement('td');
+                                            td.className = 'border px-3 py-2 text-xs';
+                                            td.textContent = value !== null ? value : 'null';
+                                            tr.appendChild(td);
+                                        });
+                                        beforeBody.appendChild(tr);
+                                    });
+
+                                    // Populate after cleaning header
+                                    const afterHeader = document.getElementById('after-cleaning-header');
+                                    afterHeader.innerHTML = '';
+                                    const headerRow = document.createElement('tr');
+
+                                    data.cleanedColumns.forEach(col => {
+                                        const th = document.createElement('th');
+                                        th.className = 'px-3 py-2 bg-gray-100 text-left text-gray-600 text-xs';
+                                        th.textContent = col;
+                                        headerRow.appendChild(th);
+                                    });
+                                    afterHeader.appendChild(headerRow);
+
+                                    // Populate after cleaning table
+                                    const afterBody = document.getElementById('after-cleaning-body');
+                                    afterBody.innerHTML = '';
+
+                                    data.afterCleaning.forEach(row => {
+                                        const tr = document.createElement('tr');
+                                        data.cleanedColumns.forEach(col => {
+                                            const td = document.createElement('td');
+                                            td.className = 'border px-3 py-2 text-xs';
+                                            td.textContent = row[col] !== null ? row[col] : 'null';
+                                            tr.appendChild(td);
+                                        });
+                                        afterBody.appendChild(tr);
+                                    });
+
+                                    // Populate cleaning summary
+                                    const cleaningSummary = document.getElementById('cleaning-summary');
+                                    cleaningSummary.innerHTML = `
+                <h4 class="font-medium mb-2">Summary of Changes:</h4>
+                <ul class="list-disc ml-5 space-y-1">
+                    ${data.stats.rowsRemoved > 0 ? `<li>${data.stats.rowsRemoved} rows would be removed</li>` : ''}
+                    ${data.stats.columnsAdded > 0 ? `<li>${data.stats.columnsAdded} columns would be added</li>` : ''}
+                    ${data.stats.columnsRemoved > 0 ? `<li>${data.stats.columnsRemoved} columns would be removed</li>` : ''}
+                    ${data.stats.nullValuesFilled > 0 ? `<li>${data.stats.nullValuesFilled} missing values would be filled</li>` : ''}
+                    ${data.stats.duplicatesRemoved > 0 ? `<li>${data.stats.duplicatesRemoved} duplicate rows would be removed</li>` : ''}
+                    ${data.stats.outliersRemoved > 0 ? `<li>${data.stats.outliersRemoved} outliers would be removed</li>` : ''}
+                </ul>
+            `;
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching preview:', error);
+                                });
+                        });
+
+                        // Close preview modal
+                        document.getElementById('close-preview').addEventListener('click', function () {
+                            document.getElementById('preview-modal').classList.add('hidden');
+                        });
+
+                        // Close modal when clicking outside
+                        document.getElementById('preview-modal').addEventListener('click', function (event) {
+                            if (event.target === this) {
+                                this.classList.add('hidden');
+                            }
+                        });
+
+                        // File upload display
+                        document.getElementById('file-upload').addEventListener('change', function (e) {
+                            const fileName = e.target.files[0].name;
+                            const fileLabel = this.previousElementSibling;
+                            const fileLabelText = fileLabel.querySelector('p.mb-2');
+                            fileLabelText.textContent = fileName;
+                        });
+
+                        // Initialize the page
+                        document.addEventListener('DOMContentLoaded', function () {
+                            // Set initial values for sliders
+                            document.getElementById('null_threshold_value').textContent =
+                                document.getElementById('null_threshold').value;
+
+                            document.getElementById('outlier_threshold_value').textContent =
+                                document.getElementById('outlier_threshold').value;
+                        });
+
+                    </script> -->
+
+                </div>
+            </div>
+
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

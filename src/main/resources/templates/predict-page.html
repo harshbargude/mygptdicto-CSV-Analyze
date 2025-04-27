@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Predictions</title>
+</head>
+<body>
+<div th:replace="~{fragments :: layout(content=~{::content})}">
+    <div th:fragment="content">
+        <div class="bg-white shadow-xl rounded-xl p-8 w-full max-w-xl mx-auto border border-gray-100">
+            <div class="text-center mb-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-green-600 mb-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Make Predictions</h1>
+                <p class="text-gray-500">Use your trained model to make predictions on new data</p>
+            </div>
+
+            <!-- Model Selection Section -->
+            <div th:if="${models != null and !models.isEmpty()}" class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3">Select a Trained Model</h2>
+                <div class="grid grid-cols-1 gap-4">
+                    <div th:each="model : ${models}" class="border border-gray-200 rounded-lg p-4 hover:border-green-400 hover:shadow-md transition-all cursor-pointer model-item" th:data-model-id="${model.id}">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-medium text-gray-800" th:text="${model.name}">Model Name</h3>
+                                <p class="text-sm text-gray-500" th:text="${'Created: ' + model.createdAt}">Created: March 21, 2025</p>
+                                <p class="text-sm text-gray-500" th:text="${'Type: ' + model.type}">Type: Regression</p>
+                            </div>
+                            <div class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full" th:text="${model.accuracy + '% accuracy'}">95% accuracy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Models Message -->
+            <!-- <div th:if="${models == null or models.isEmpty()}" class="mb-8 text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <h3 class="text-lg font-medium text-gray-700 mb-1">No Models Available</h3>
+                <p class="text-gray-500">You need to train a model before you can make predictions.</p>
+                <a href="/train" class="mt-4 inline-block bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors font-medium">
+                    Train a Model Now
+                </a>
+            </div> -->
+
+            <form method="post" enctype="multipart/form-data" action="/predict" class="mt-4">
+                <div class="relative hidden">
+                    <input type="file" name="file" accept=".csv" id="ml-file-input">
+                </div>
+                <button
+                    class="w-full bg-gradient-to-r from-green-600 to-green-900 text-white py-3 px-6 rounded-lg hover:from-greem-700 hover:to-green-700 transition-all duration-300 font-medium shadow-md flex items-center justify-center "
+                    type="button" onclick="document.getElementById('ml-file-input').click()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Get ML Predictions
+                </button>
+            </form>
+
+            <!-- Prediction Form -->
+            <form id="prediction-form" method="post" enctype="multipart/form-data" action="/predict" class="space-y-6" th:if="${models != null and !models.isEmpty()}">
+                <input type="hidden" id="selected-model-id" name="modelId" value="">
+
+                <!-- File Upload -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-700 mb-3">Upload Data for Prediction</h2>
+                    <div class="relative">
+                        <label class="block text-gray-700 font-medium mb-2">Select CSV File</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-500 transition-colors cursor-pointer bg-gray-50">
+                            <input type="file" name="file" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="text-sm text-gray-500">Drag and drop your CSV file here, or click to browse</p>
+                            <p class="text-xs text-gray-400 mt-1">Your file should have the same columns as your training data (excluding the target column)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Or Manual Input Option -->
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">Or enter values manually</span>
+                    </div>
+                </div>
+
+                <!-- Manual Input Form -->
+                <div id="manual-input-container" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="space-y-4" id="manual-fields">
+                        <!-- Fields will be dynamically loaded based on the selected model -->
+                        <p class="text-center text-gray-500 text-sm">Select a model to see input fields</p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button class="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-3 px-6 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all duration-300 font-medium shadow-md flex items-center justify-center" type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                    </svg>
+                    Generate Predictions
+                </button>
+            </form>
+
+            <!-- Results Section (will be shown after prediction) -->
+            <div th:if="${predictions != null}" class="mt-8 pt-6 border-t border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-700 mb-4">Prediction Results</h2>
+
+                <div class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-100">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Input
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Predicted Value
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Confidence
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tr th:each="prediction : ${predictions}">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${prediction.input}">
+                                    Input values
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${prediction.value}">
+                                    42.5
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-16 bg-gray-200 rounded-full h-2.5">
+                                            <div class="bg-green-600 h-2.5 rounded-full" th:style="'width: ' + ${prediction.confidence} + '%'"></div>
+                                        </div>
+                                        <span class="ml-2 text-sm text-gray-500" th:text="${prediction.confidence + '%'}">95%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Download Results Button -->
+                <div class="mt-4 text-center">
+                    <a href="/download-predictions" class="inline-flex items-center text-green-600 hover:text-green-800 font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Download Results as CSV
+                    </a>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div th:if="${error}" class="mt-6 bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 text-center animate-fade-in" th:text="${error}"></div>
+            <div th:if="${message}" class="mt-6 bg-green-50 text-green-700 p-4 rounded-lg border border-green-200 text-center animate-fade-in" th:text="${message}"></div>
+
+            <!-- Help Section -->
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Prediction Tips</h3>
+                <ul class="text-sm text-gray-600 space-y-2">
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Your input data should have the same format as your training data
+                    </li>
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        The system will automatically handle data preprocessing
+                    </li>
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Higher confidence scores indicate more reliable predictions
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Model Selection and Dynamic Fields -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Model selection functionality
+        const modelItems = document.querySelectorAll('.model-item');
+        const selectedModelInput = document.getElementById('selected-model-id');
+        const manualFieldsContainer = document.getElementById('manual-fields');
+
+        // Add click event to model items
+        modelItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active class from all items
+                modelItems.forEach(m => m.classList.remove('border-green-500', 'bg-green-50'));
+
+                // Add active class to selected item
+                this.classList.add('border-green-500', 'bg-green-50');
+
+                // Set the selected model ID
+                const modelId = this.getAttribute('data-model-id');
+                selectedModelInput.value = modelId;
+
+                // Load model fields
+                loadModelFields(modelId);
+            });
+        });
+
+        // Function to load model fields
+        function loadModelFields(modelId) {
+            // In a real application, you would fetch the model fields from the server
+            // For this example, we'll simulate it
+
+            // Clear existing fields
+            manualFieldsContainer.innerHTML = '';
+
+            // Show loading indicator
+            manualFieldsContainer.innerHTML = '<p class="text-center text-gray-500 text-sm">Loading fields...</p>';
+
+            // Simulate API call to get model fields
+            setTimeout(() => {
+                // This would be replaced with actual model field data from your server
+                const fields = [
+                    { name: 'age', type: 'number', label: 'Age' },
+                    { name: 'income', type: 'number', label: 'Income' },
+                    { name: 'education', type: 'select', label: 'Education Level', options: ['High School', 'Bachelor', 'Master', 'PhD'] },
+                    { name: 'region', type: 'text', label: 'Region' }
+                ];
+
+                // Clear loading indicator
+                manualFieldsContainer.innerHTML = '';
+
+                // Generate fields
+                fields.forEach(field => {
+                    const fieldDiv = document.createElement('div');
+
+                    const label = document.createElement('label');
+                    label.className = 'block text-gray-700 text-sm font-medium mb-1';
+                    label.textContent = field.label;
+                    fieldDiv.appendChild(label);
+
+                    if (field.type === 'select') {
+                        const select = document.createElement('select');
+                        select.name = field.name;
+                        select.className = 'w-full border border-gray-300 p-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500';
+
+                        // Add default empty option
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = 'Select ' + field.label;
+                        select.appendChild(defaultOption);
+
+                        // Add options
+                        field.options.forEach(option => {
+                            const optionEl = document.createElement('option');
+                            optionEl.value = option;
+                            optionEl.textContent = option;
+                            select.appendChild(optionEl);
+                        });
+
+                        fieldDiv.appendChild(select);
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = field.type;
+                        input.name = field.name;
+                        input.className = 'w-full border border-gray-300 p-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500';
+                        input.placeholder = 'Enter ' + field.label.toLowerCase();
+                        fieldDiv.appendChild(input);
+                    }
+
+                    manualFieldsContainer.appendChild(fieldDiv);
+                });
+
+                // If no fields were added, show a message
+                if (fields.length === 0) {
+                    manualFieldsContainer.innerHTML = '<p class="text-center text-gray-500 text-sm">No input fields available for this model</p>';
+                }
+            }, 500);
+        }
+
+        // Select the first model by default if available
+        if (modelItems.length > 0) {
+            modelItems[0].click();
+        }
+    });
+</script>
+</body>
+</html>
